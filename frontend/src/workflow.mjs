@@ -105,7 +105,7 @@ export function transition(s,id,event,payload={}){
     next={...stage('in_review'),response:payload.response.trim()};
   if(event==='finish'&&c.stage==='in_review'){
     const birth=id==='birth';
-    next={...stage(id==='identity'||(birth&&c.values.delivery==='office')?'collection_ready':'completed'),result:birth?{title:'Odpis aktu urodzenia – DEMO',reference:'USC-DEMO-001',child:c.values.name+' '+c.values.surname,pesel:'DEMO-NIE-JEST-PESEL',delivery:c.values.delivery}: {title:definitions[id].title+' – potwierdzenie demo',reference:id.toUpperCase()+'-DEMO-001'}};
+    next={...stage(id==='identity'||(birth&&c.values.delivery==='office')?'collection_ready':'completed'),result:birth?{title:'Odpis aktu urodzenia – DEMO',reference:'USC-DEMO-001',child:c.values.name+' '+c.values.surname,pesel:'DEMO-NIE-JEST-PESEL',delivery:c.values.delivery}: {title:definitions[id].title+' – potwierdzenie demo',reference:id.toUpperCase()+'-DEMO-001',...(id==='identity'?{issuedDay:s.deadline.day}:{})}};
     notice=birth||id==='identity'?'Dokument jest gotowy. Sprawdź sposób odbioru.':'Sprawa została zakończona (symulacja).';
   }
   if(event==='collect'&&c.stage==='collection_ready'&&payload.confirmed===true){
@@ -116,7 +116,7 @@ export function transition(s,id,event,payload={}){
   if(id==='identity'&&event==='submit')deadline={...deadline,visitDue:deadline.day+30};
   if(id==='identity'&&event==='receive')notice='Wniosek przyjęto. Uzupełnij odciski palców i podpis w urzędzie w ciągu 30 dni od wysłania.';
   if(id==='identity'&&event==='collect'){
-    const date=new Date(EPOCH+deadline.day*DAY);date.setUTCFullYear(date.getUTCFullYear()+10);
+    const date=new Date(EPOCH+c.result.issuedDay*DAY);date.setUTCFullYear(date.getUTCFullYear()+10);
     deadline={...deadline,expiryDay:dateToDay(date.toISOString().slice(0,10)),renewed:true,visitDue:null,emitted:[]};
   }
   return {...s,deadline,cases:{...s.cases,[id]:next},notifications:notice?[{id, message:notice, key:id+'-'+next.stage,at:demoDate(deadline.day)+'T12:00:00Z',read:false},...s.notifications]:s.notifications};
@@ -137,6 +137,7 @@ export function restore(raw){
       if(!definitions[id].fields.every(f=>typeof c.values[f.key]==='string'&&c.values[f.key].length<=60&&(f.kind==='text'||c.values[f.key]===''||f.options.some(([v])=>v===c.values[f.key]))))return initial();
       if(c.stage!=='draft'&&errors(c).length)return initial();
       if(['completed','collection_ready'].includes(c.stage)&&(!c.result||typeof c.result.title!=='string'||typeof c.result.reference!=='string'))return initial();
+      if(id==='identity'&&['completed','collection_ready'].includes(c.stage)&&(!Number.isInteger(c.result.issuedDay)||c.result.issuedDay<0||c.result.issuedDay>d.day))return initial();
       if(id!=='birth'&&id!=='identity'&&!['completed','collection_ready'].includes(s.cases.birth.stage))return initial();
     }
     if(!s.notifications.every(n=>n&&ids.includes(n.id)&&typeof n.message==='string'&&typeof n.key==='string'&&typeof n.read==='boolean'&&typeof n.at==='string'))return initial();
