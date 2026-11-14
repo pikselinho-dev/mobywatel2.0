@@ -31,7 +31,7 @@ export function errors(c){
   return out;
 }
 export function canStart(s,id){
-  return ids.includes(id)&&(id==='birth'||s.cases.birth?.stage==='completed');
+  return ids.includes(id)&&(id==='birth'||['completed','collection_ready'].includes(s.cases.birth?.stage));
 }
 export function transition(s,id,event,payload={}){
   if(!canStart(s,id))return s;
@@ -77,10 +77,11 @@ export function restore(raw){
     if(s?.version!==2||!s.cases||!Array.isArray(s.notifications)||!s.cases.birth)return initial();
     for(const [id,c] of Object.entries(s.cases)){
       if(!ids.includes(id)||c.id!==id||!Object.hasOwn(labels,c.stage)||!c.values||!Array.isArray(c.history)||typeof c.reason!=='string'||typeof c.response!=='string')return initial();
+      if(!c.history.every(h=>h&&Object.hasOwn(labels,h.stage)&&typeof h.at==='string'&&Number.isFinite(Date.parse(h.at))))return initial();
       if(!definitions[id].fields.every(f=>typeof c.values[f.key]==='string'&&c.values[f.key].length<=60&&(f.kind==='text'||c.values[f.key]===''||f.options.some(([v])=>v===c.values[f.key]))))return initial();
       if(c.stage!=='draft'&&errors(c).length)return initial();
       if(['completed','collection_ready'].includes(c.stage)&&(!c.result||typeof c.result.title!=='string'||typeof c.result.reference!=='string'))return initial();
-      if(id!=='birth'&&s.cases.birth.stage!=='completed')return initial();
+      if(id!=='birth'&&!['completed','collection_ready'].includes(s.cases.birth.stage))return initial();
     }
     if(!s.notifications.every(n=>n&&ids.includes(n.id)&&typeof n.message==='string'&&typeof n.key==='string'&&typeof n.read==='boolean'&&typeof n.at==='string'))return initial();
     return s;
