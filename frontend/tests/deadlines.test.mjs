@@ -46,3 +46,9 @@ test('persistence and v2 migration retain family data',()=>{
 test('expired even if office receipt has not been simulated',()=>{
  let s=submit(prepared());s=changeDeadline(s,{advance:31});assert.equal(s.cases.identity.stage,'expired');
 });
+
+test('delayed collection does not extend document validity',()=>{
+ let s=transition(submit(prepared()),'identity','receive');s=transition(s,'identity','visit',{confirmed:true});s=transition(s,'identity','inspect');s=transition(s,'identity','finish');
+ const issued=demoDate(s.deadline.day);s=changeDeadline(s,{advance:7});s=transition(s,'identity','collect',{confirmed:true});
+ assert.equal(demoDate(s.deadline.expiryDay),issued.replace('2026','2036'));
+});
