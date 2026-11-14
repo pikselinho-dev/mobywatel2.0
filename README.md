@@ -22,4 +22,14 @@ Proponowane główne scenariusze: narodziny dziecka, wymiana dowodu, PIT, zdrowi
 [Specyfikacja projektu: wizja, wymagania konkursowe, MVP, architektura, bezpieczeństwo i plan](docs/PROJECT_SPEC.md)
 
 ## Status
-Dokumentacja początkowa. Kod aplikacji, hosting i testy nie są jeszcze gotowe.
+Wersja 0.2.0: frontend i silnik spraw, demonstracyjne narodziny dziecka oraz 800+, zgłoszenie do ubezpieczenia i wybór POZ. 13 scenariuszy testowych logiki zaliczonych w izolowanym środowisku JavaScript; kompilacja Vite i testy przeglądarkowe niezweryfikowane. Hosting i rzeczywiste integracje nie są gotowe.
+
+## Uruchomienie lokalne
+```sh
+cd frontend
+npm install
+npm test
+npm run dev
+```
+
+`npm run build` tworzy statyczną wersję do publikacji. Poprzednie dane demo v0.1 nie są migrowane do nowego klucza v2. Wszystkie działania są symulacją, w tym powiadomienia (nie rzeczywisty PUSH). Po zakończeniu rejestracji USC kolejne sprawy są dostępne także przed odbiorem papierowego odpisu.
