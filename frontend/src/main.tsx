@@ -35,7 +35,7 @@ function App(){
  <section className="card"><h2>Asystent obywatelski</h2><p>Opisz potrzebę lub wybierz sprawę. Asystent demo przeprowadzi Cię przez pytania i dalsze formalności.</p>
  <form onSubmit={answerQuery}><label htmlFor="query">Czego potrzebujesz?</label><input id="query" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Urodziło mi się dziecko"/><button disabled={!query.trim()}>Rozpocznij</button></form>{hint&&<p role="status">{hint}</p>}</section>
  <h2>Moje życie</h2><button className="tile" onClick={()=>open('birth')}><strong>Narodziny dziecka</strong><small>USC, świadczenia, ubezpieczenie i zdrowie</small><span>{labels[birth.stage]} →</span></button>
- {birth.stage==='completed'&&<Family data={data} open={open}/>}
+ {['completed','collection_ready'].includes(birth.stage)&&<Family data={data} open={open}/>}
  <h2>Usługi w przygotowaniu</h2><div className="tiles">{['Dokumenty i terminy','Podatki – US','Zdrowie – IKP (pozostałe usługi)','ZUS (pozostałe usługi)'].map(x=><div className="tile pending" key={x}><strong>{x}</strong><small>Planowany moduł</small></div>)}</div></>}
  {page==='case'&&c&&<><button className="back" onClick={()=>setPage('home')}>← Start</button><p className="eyebrow">{definitions[active].agency} · DEMO</p><h1>{title(active)}</h1><p className="status" role="status">{labels[c.stage]}</p>
  {active!=='birth'&&<p>Dziecko: {birth.values.name} {birth.values.surname} · identyfikator demonstracyjny, dane z zakończonej sprawy USC.</p>}
@@ -56,13 +56,13 @@ function App(){
  {c.stage==='collection_ready'&&<><label className="check"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>Potwierdzam odbiór w scenariuszu demonstracyjnym.</label><button disabled={!consent} onClick={()=>act('collect',{confirmed:consent})}>Potwierdź odbiór – demo</button></>}
  <button className="secondary" onClick={()=>setPage('alerts')}>Zobacz powiadomienia</button></>}
  </section>}
- {active==='birth'&&c.stage==='completed'&&<Family data={data} open={open}/>}
+ {active==='birth'&&['completed','collection_ready'].includes(c.stage)&&<Family data={data} open={open}/>}
  </>}
  {page==='cases'&&<><h1>Moje sprawy</h1>{ids.filter(id=>data.cases[id]).map(id=><button className="tile" key={id} onClick={()=>open(id as Id)}><strong>{title(id)}</strong><small>{labels[data.cases[id].stage]}</small><span>Otwórz →</span></button>)}</>}
  {page==='alerts'&&<><h1>Powiadomienia</h1>{data.notifications.length?data.notifications.map(n=><button className="tile" key={n.key} onClick={()=>open(n.id as Id,readNotice(data,n.key))}><strong>{n.read?'Przeczytane':'Nowe'} · {title(n.id)}</strong><small>{n.message}</small></button>):<p>Brak powiadomień.</p>}<p className="note">Powiadomienia w aplikacji, bez rzeczywistego Web Push.</p></>}
  </main><nav aria-label="Główna nawigacja">{([['home','Start'],['cases','Sprawy'],['alerts','Powiadomienia']] as const).map(([p,t])=><button key={p} aria-current={page===p?'page':undefined} onClick={()=>setPage(p)}>{t}</button>)}</nav><footer><button className="back" onClick={()=>{if(window.confirm('Usunąć dane demonstracyjne i rozpocząć od nowa?'))reset();}}>Zresetuj demo</button></footer></div>;
 }
 function Family({data,open}:{data:ReturnType<typeof initial>;open:(id:Id)=>void}){
- return <section className="card"><h2>Co dalej po narodzinach?</h2><p>Rejestracja zakończona. Każda kolejna sprawa korzysta z tego samego profilu dziecka, ale wymaga osobnego zatwierdzenia.</p>{(['benefit','insurance','health'] as const).map(id=><button className="tile secondary" key={id} onClick={()=>open(id)}><strong>{title(id)}</strong><small>{data.cases[id]?labels[data.cases[id].stage]:'Rozpocznij sprawę'} →</small></button>)}</section>;
+ return <section className="card"><h2>Co dalej po narodzinach?</h2><p>Rejestracja zakończona; nie musisz czekać na odbiór papierowego odpisu w tym demo. Każda kolejna sprawa korzysta z tego samego profilu dziecka, ale wymaga osobnego zatwierdzenia.</p>{(['benefit','insurance','health'] as const).map(id=><button className="tile secondary" key={id} onClick={()=>open(id)}><strong>{title(id)}</strong><small>{data.cases[id]?labels[data.cases[id].stage]:'Rozpocznij sprawę'} →</small></button>)}</section>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);
